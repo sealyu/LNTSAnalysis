@@ -1,4 +1,8 @@
-import numpy as np # linear algebra
+"""
+ This is for the 2017-12-14 data clean task.
+ Today I re-set the threshold, and clean the users who click count bigger than 100 and without any other action types.
+ -- Haibo Yu
+"""
 import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
 
 user_log_data = pd.DataFrame(pd.read_csv('./data/user_log_format1.csv'))
@@ -12,8 +16,6 @@ groupSum = user_log_data.groupby(['user_id','seller_id']).agg({'clickCounts':'su
 tempResult = groupSum.reset_index()
 
 tempResult = tempResult[tempResult['clickCounts'] < 100 | ((tempResult['clickCounts']>=100) & ((tempResult['addToCartCounts'] !=0) | (tempResult['buyCounts']!=0) | (tempResult['addFavCounts']!=0)))]
-
-# print(filterClick.head(50))
 
 tempResult['prob'] = tempResult['clickCounts']*0.01 + tempResult['addToCartCounts']*0.2 + tempResult['buyCounts']*0.5 + tempResult['addFavCounts']*0.4
 tempResult.loc[tempResult['prob'] > 1, 'prob'] = 1
