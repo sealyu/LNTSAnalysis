@@ -15,16 +15,17 @@ user_log_data['addFavCounts'] = (user_log_data.action_type == 3).astype(int)
 groupSum = user_log_data.groupby(['user_id','seller_id']).agg({'clickCounts':'sum', 'addToCartCounts':'sum','buyCounts':'sum', 'addFavCounts':'sum'})
 tempResult = groupSum.reset_index()
 
-tempResult = tempResult[tempResult['clickCounts'] < 100 | ((tempResult['clickCounts']>=100) & ((tempResult['addToCartCounts'] !=0) | (tempResult['buyCounts']!=0) | (tempResult['addFavCounts']!=0)))]
+# tempResult = tempResult[tempResult['clickCounts'] < 1000 | ((tempResult['clickCounts']>=1000) & ((tempResult['addToCartCounts'] !=0) | (tempResult['buyCounts']!=0) | (tempResult['addFavCounts']!=0)))]
+tempResult = tempResult[tempResult['clickCounts'] < 200]
 
-tempResult['prob'] = tempResult['clickCounts']*0.01 + tempResult['addToCartCounts']*0.2 + tempResult['buyCounts']*0.5 + tempResult['addFavCounts']*0.4
+tempResult['prob'] = tempResult['clickCounts']*0.02 + tempResult['addToCartCounts']*0.2 + tempResult['buyCounts']*0.6 + tempResult['addFavCounts']*0.4
 tempResult.loc[tempResult['prob'] > 1, 'prob'] = 1
 
 del tempResult['clickCounts']
 del tempResult['addToCartCounts']
 del tempResult['buyCounts']
 del tempResult['addFavCounts']
-result = tempResult[tempResult['prob']>=0.7]
+result = tempResult[tempResult['prob']>=0.8]
 result.drop_duplicates()
 result.round(2)
 
