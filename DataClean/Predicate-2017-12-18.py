@@ -40,7 +40,7 @@ for line in test_data.itertuples():
 # 利用均方根误差进行评估
 from sklearn.metrics import mean_squared_error
 from math import sqrt
-from sklearn.metrics.pairwise import pairwise_distances
+
 
 def rmse(prediction, ground_truth):
     prediction = prediction[ground_truth.nonzero()].flatten()
@@ -58,7 +58,7 @@ def predict(ratings, similarity, type='user'):
         pred = ratings.dot(similarity) / np.array([np.abs(similarity).sum(axis=1)])
     return pred
 
-
+# from sklearn.metrics.pairwise import pairwise_distances
 # user_similarity = pairwise_distances(train_data_matrix, metric='cosine')
 # user_prediction = predict(train_data_matrix, user_similarity, type='user')
 # print('User-based CF RMSE: ' + str(rmse(user_prediction, test_data_matrix)))
@@ -72,5 +72,5 @@ from scipy.sparse.linalg import svds
 u, s, vt = svds(train_data_matrix, k=20)
 s_diag_matrix = np.diag(s)
 X_pred = np.dot(np.dot(u, s_diag_matrix), vt)
-
+print(X_pred)
 print('User-based CF MSE: ' + str(rmse(X_pred, test_data_matrix)))
