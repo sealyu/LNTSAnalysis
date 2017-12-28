@@ -3,9 +3,7 @@ import xgboost as xgb
 from sklearn.preprocessing import MinMaxScaler
 
 dataset1 = pd.read_csv('data/dataset1.csv')
-dataset1.label.replace(-1, 0, inplace=True)
 dataset2 = pd.read_csv('data/dataset2.csv')
-dataset2.label.replace(-1, 0, inplace=True)
 dataset3 = pd.read_csv('data/dataset3.csv')
 
 dataset1.drop_duplicates(inplace=True)
@@ -15,14 +13,16 @@ dataset3.drop_duplicates(inplace=True)
 dataset12 = pd.concat([dataset1, dataset2], axis=0)
 
 dataset1_y = dataset1.label
-dataset1_x = dataset1.drop(['user_id', 'label', 'day_gap_before', 'day_gap_after'],
-                           axis=1)  # 'day_gap_before','day_gap_after' cause overfitting, 0.77
+dataset1_x = dataset1.drop(['user_id','seller_id', 'label'],axis=1)
+
 dataset2_y = dataset2.label
-dataset2_x = dataset2.drop(['user_id', 'label', 'day_gap_before', 'day_gap_after'], axis=1)
+dataset2_x = dataset2.drop(['user_id','seller_id', 'label'], axis=1)
+
 dataset12_y = dataset12.label
-dataset12_x = dataset12.drop(['user_id', 'label', 'day_gap_before', 'day_gap_after'], axis=1)
-dataset3_preds = dataset3[['user_id', 'coupon_id', 'date_received']]
-dataset3_x = dataset3.drop(['user_id', 'coupon_id', 'date_received', 'day_gap_before', 'day_gap_after'], axis=1)
+dataset12_x = dataset12.drop(['user_id','seller_id','label'], axis=1)
+
+dataset3_preds = dataset3[['user_id', 'seller_id']]
+dataset3_x = dataset3.drop(['user_id','seller_id'], axis=1)
 
 print(dataset1_x.shape, dataset2_x.shape, dataset3_x.shape)
 
@@ -47,17 +47,20 @@ params = {'booster': 'gbtree',
           'nthread': 12
           }
 
-# train on dataset1, evaluate on dataset2
-# watchlist = [(dataset1,'train'),(dataset2,'val')]
-# model = xgb.train(params,dataset1,num_boost_round=3000,evals=watchlist,early_stopping_rounds=300)
+#train on dataset1, evaluate on dataset2
+#watchlist = [(dataset1,'train'),(dataset2,'val')]
+#model = xgb.train(params,dataset1,num_boost_round=3000,evals=watchlist,early_stopping_rounds=300)
 
 watchlist = [(dataset12, 'train')]
-model = xgb.train(params, dataset12, num_boost_round=3500, evals=watchlist)
+model = xgb.train(params, dataset12, num_boost_round=300, evals=watchlist)
+
+# 转储模型和特征映射
+model.dump_model('dump.raw.txt')
 
 # predict test set
 dataset3_preds['label'] = model.predict(dataset3)
 dataset3_preds.label = MinMaxScaler().fit_transform(dataset3_preds.label)
-dataset3_preds.sort_values(by=['coupon_id', 'label'], inplace=True)
+dataset3_preds.sort_values(by=['user_id','seller_id', 'label'], inplace=True)
 dataset3_preds.to_csv("xgb_preds.csv", index=None, header=None)
 print(dataset3_preds.describe())
 
